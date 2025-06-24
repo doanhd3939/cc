@@ -9,8 +9,8 @@ TELEGRAM_TOKEN = "7785351537:AAHdxL61w6uRnJnRVkXrIFTfgH1I8fkoAhM"
 CHAT_IDS = ["-1002723056627"]
 ADMIN_ID = "6463176046"
 
-# Thêm chiến lược 'streak'
-strategies = ["chain", "frequency", "random", "streak"]
+# Chỉ sử dụng chiến lược streak
+strategies = ["streak"]
 strategy_stats = {s: {"correct": 0, "total": 0} for s in strategies}
 
 last_sent_session_id = None
@@ -35,17 +35,7 @@ def get_vn_time():
 
 
 def predict_by_strategy(data, strategy):
-    if strategy == "frequency":
-        counts = {"Tài": 0, "Xỉu": 0}
-        for item in data:
-            total = item["FirstDice"] + item["SecondDice"] + item["ThirdDice"]
-            counts[get_result(total)] += 1
-        return "Tài" if counts["Tài"] >= counts["Xỉu"] else "Xỉu"
-    elif strategy == "chain":
-        latest = data[0]
-        total = latest["FirstDice"] + latest["SecondDice"] + latest["ThirdDice"]
-        return "Xỉu" if get_result(total) == "Tài" else "Tài"
-    elif strategy == "streak":
+    if strategy == "streak":
         last_result = get_result(data[0]["FirstDice"] + data[0]["SecondDice"] + data[0]["ThirdDice"])
         streak_value = last_result
         streak_count = 1
@@ -60,25 +50,12 @@ def predict_by_strategy(data, strategy):
         else:
             return streak_value
     else:
-        import random
-        return "Tài" if random.random() < 0.5 else "Xỉu"
+        return "Tài"  # Dự phòng, không dùng
 
 
 def get_final_prediction(data):
-    votes = {"Tài": 0, "Xỉu": 0}
-    individual = {}
-    for s in strategies:
-        res = predict_by_strategy(data, s)
-        individual[s] = res
-        votes[res] += 1
-    if votes["Tài"] > votes["Xỉu"]:
-        final = "Tài"
-    elif votes["Xỉu"] > votes["Tài"]:
-        final = "Xỉu"
-    else:
-        import random
-        final = "Tài" if random.random() < 0.5 else "Xỉu"
-    return final, individual
+    result = predict_by_strategy(data, "streak")
+    return result, {"streak": result}
 
 
 def fetch_data():
@@ -209,7 +186,6 @@ def predict_and_send(data):
         final_prediction, _ = get_final_prediction(data)
         last_prediction = final_prediction
         last_prediction_session_id = session_id
-
 
     if is_bot_enabled and msg.strip():
         send_telegram_message(msg.strip())
