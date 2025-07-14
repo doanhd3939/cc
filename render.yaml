@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: bypass-api
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: gunicorn api:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
