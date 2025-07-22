@@ -1,10 +1,8 @@
 services:
   - type: web
-    name: bypass-api
+    name: flask-api
     env: python
-    plan: free
     buildCommand: ""
-    startCommand: gunicorn api:app
-    envVars:
-      - key: FLASK_ENV
-        value: production
+    startCommand: "gunicorn api:app"
+    plan: free
+    autoDeploy: true
